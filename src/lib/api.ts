@@ -1,0 +1,23 @@
+import { request, type Result } from './http';
+import type { ApiStatus, HubSession, Profile } from './types';
+
+// URL da API local vista pelo navegador. Opcional; o padrão serve para a porta 4000 publicada.
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+
+export const getStatus = () => request<ApiStatus>(`${API_URL}/status`);
+
+export const getProfile = () => request<Profile>(`${API_URL}/profile`);
+
+export const saveProfile = (nickname: string): Promise<Result<Profile>> =>
+  request<Profile>(`${API_URL}/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nickname }),
+  });
+
+export const syncProfile = () =>
+  request<unknown>(`${API_URL}/sync`, { method: 'POST' });
+
+export const getHubSession = () =>
+  request<HubSession>(`${API_URL}/hub/session`);

@@ -1,0 +1,26 @@
+# Preencha um bloco por etapa concluída, logo depois de subir aquele serviço na mão.
+# Os nomes dos serviços são os mesmos dos containers manuais (site, api, db),
+# então o host `db` na DATABASE_URL vale nos dois mundos.
+#
+# Os repositórios são independentes e podem estar em pastas diferentes.
+
+services:
+  # Etapa 1 - site
+  site:
+    # TODO(workshop): build (contexto atual) e porta 3000:3000
+    # TODO(workshop): pare o container manual do site antes de subir o compose
+
+  # Etapa 2 - API
+  # TODO(workshop): serviço `api` com build apontando para o repositório da API
+  #   (o caminho onde você o clonou ou a URL git)
+  #   - porta 4000:4000 (o navegador chama a API direto)
+  #   - environment: DATABASE_URL, PARTICIPANT_TOKEN, HUB_URL
+
+  # Etapa 3 - banco
+  # TODO(workshop): serviço `db` com a imagem oficial postgres:16
+  #   - variáveis POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+  #   - um volume para os dados não sumirem quando o container for recriado
+  #   - o serviço `api` deve depender do `db`
+
+# TODO(workshop): declare o volume do banco aqui
+# volumes:
