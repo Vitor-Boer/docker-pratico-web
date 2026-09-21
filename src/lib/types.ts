@@ -14,6 +14,8 @@ export interface ApiStatus {
 // GET {API}/profile e PUT {API}/profile
 export interface Profile {
   nickname: string | null;
+  // Só no PUT: false quando o apelido foi salvo no banco local mas o hub não foi avisado.
+  synced?: boolean;
 }
 
 // GET {API}/hub/session

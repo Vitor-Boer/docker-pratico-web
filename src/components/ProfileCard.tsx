@@ -26,7 +26,13 @@ export function ProfileCard() {
     event.preventDefault();
     setBusy(true);
     const result = await saveProfile(nickname.trim());
-    setMessage(result.ok ? 'Apelido salvo.' : 'Não foi possível salvar.');
+    if (!result.ok) {
+      setMessage('Não foi possível salvar.');
+    } else if (result.data.synced === false) {
+      setMessage('Apelido salvo no banco, mas o hub não foi avisado. Use "Sincronizar com o hub".');
+    } else {
+      setMessage('Apelido salvo.');
+    }
     setBusy(false);
   }
 
