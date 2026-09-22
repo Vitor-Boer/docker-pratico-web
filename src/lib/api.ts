@@ -2,8 +2,11 @@ import { request, type Result } from './http';
 import type { ApiStatus, ParticipantView, Profile } from './types';
 
 // URL da API local vista pelo navegador. Opcional; o padrão serve para a porta 3001 publicada.
+// 127.0.0.1, não `localhost`: em algumas máquinas (comum em Linux) o navegador resolve
+// `localhost` para o IPv6 `::1` primeiro, e se o Docker só publicou a porta em IPv4 essa
+// tentativa trava até estourar o timeout da chamada — some intermitente da tela.
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3001';
 
 export const getStatus = () => request<ApiStatus>(`${API_URL}/status`);
 
