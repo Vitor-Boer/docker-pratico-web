@@ -14,7 +14,7 @@ services:
   # TODO(workshop): serviço `api` com build apontando para o repositório da API
   #   (o caminho onde você o clonou ou a URL git)
   #   - porta 4000:4000 (o navegador chama a API direto)
-  #   - environment: DATABASE_URL, PARTICIPANT_TOKEN, HUB_URL
+  #   - environment: DATABASE_URL (host `db`)
 
   # Etapa 3 - banco
   # TODO(workshop): serviço `db` com a imagem oficial postgres:16

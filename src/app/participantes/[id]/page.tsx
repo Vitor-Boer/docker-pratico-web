@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { use } from 'react';
-import { checkpointLabel } from '@/components/checkpointLabel';
+import { PieceBlocks } from '@/components/PieceBlocks';
 import { getParticipant } from '@/lib/hub';
 import { usePolling } from '@/lib/usePolling';
 
@@ -21,14 +21,14 @@ export default function ParticipantPage({ params }: { params: Promise<{ id: stri
           <p className="notice">
             {result.status === 404
               ? 'Participante não encontrado.'
-              : 'Não foi possível carregar. A API e o hub precisam estar no ar.'}
+              : 'Não foi possível carregar. O hub precisa estar no ar.'}
           </p>
         )}
 
         {result?.ok && (
           <>
             <h2>{result.data.name}</h2>
-            <p>Etapa atual: {checkpointLabel(result.data.checkpoint)}</p>
+            <PieceBlocks pieces={result.data} />
           </>
         )}
       </div>

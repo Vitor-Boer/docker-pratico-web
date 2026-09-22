@@ -257,16 +257,53 @@ input:disabled {
   white-space: nowrap;
 }
 
-.checkpoint-SITE {
+.pieces-1 {
   border-left-color: var(--checking);
 }
 
-.checkpoint-API {
+.pieces-2 {
   border-left-color: var(--accent);
 }
 
-.checkpoint-DB {
+.pieces-3 {
   border-left-color: var(--up);
+}
+
+/* Os três bloquinhos: apagados até a peça subir, ligados por um traço que se completa. */
+.pieces {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.piece {
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.7rem;
+  opacity: 0.35;
+  transition: opacity 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.piece.on {
+  border-color: var(--up);
+  color: var(--text);
+  opacity: 1;
+}
+
+.link {
+  width: 10px;
+  height: 2px;
+  background: var(--border);
+  opacity: 0.35;
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+
+.link.on {
+  background: var(--up);
+  opacity: 1;
 }
 
 @keyframes pop {

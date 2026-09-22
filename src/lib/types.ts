@@ -1,32 +1,22 @@
-// Formatos propostos em docs/arquitetura-hub.md e docs/api-participante.md do repo do hub.
-// CONTRATO PENDENTE: ajuste aqui se as rotas ou payloads mudarem.
-
-export type Checkpoint = 'SITE' | 'API' | 'DB';
-
-export type ServiceState = 'up' | 'down';
-
 // GET {API}/status
 export interface ApiStatus {
-  db: ServiceState;
-  hub: ServiceState;
+  db: 'up' | 'down';
 }
 
 // GET {API}/profile e PUT {API}/profile
 export interface Profile {
   nickname: string | null;
-  // Só no PUT: false quando o apelido foi salvo no banco local mas o hub não foi avisado.
-  synced?: boolean;
 }
 
-// GET {API}/hub/session
-export interface HubSession {
-  token: string;
-  hubUrl: string;
+// As três peças do desafio, como o painel as desenha: cada uma acesa ou apagada.
+export interface Pieces {
+  site: boolean;
+  api: boolean;
+  db: boolean;
 }
 
 // GET {HUB}/participants e GET {HUB}/participants/:id
-export interface ParticipantView {
+export interface ParticipantView extends Pieces {
   id: string;
   name: string;
-  checkpoint: Checkpoint | null;
 }

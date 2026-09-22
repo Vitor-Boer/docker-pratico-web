@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { getProfile, saveProfile, syncProfile } from '@/lib/api';
+import { getProfile, saveProfile } from '@/lib/api';
 import { useSiteStatus } from './StatusProvider';
 
-// Perfil = só o apelido. Depende do banco local (editar) e do hub (sincronizar).
-// Sem a peça no ar, o cartão continua na tela, desabilitado.
+// Perfil = só o apelido, gravado no banco local. Quem leva o apelido até o painel é o
+// ping do site, na próxima rodada. Sem banco no ar o cartão continua na tela, desabilitado.
 export function ProfileCard() {
   const status = useSiteStatus();
   const dbUp = status.db === 'up';
-  const canSync = dbUp && status.hub === 'up';
 
   const [nickname, setNickname] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -26,20 +25,7 @@ export function ProfileCard() {
     event.preventDefault();
     setBusy(true);
     const result = await saveProfile(nickname.trim());
-    if (!result.ok) {
-      setMessage('Não foi possível salvar.');
-    } else if (result.data.synced === false) {
-      setMessage('Apelido salvo no banco, mas o hub não foi avisado. Use "Sincronizar com o hub".');
-    } else {
-      setMessage('Apelido salvo.');
-    }
-    setBusy(false);
-  }
-
-  async function onSync() {
-    setBusy(true);
-    const result = await syncProfile();
-    setMessage(result.ok ? 'Sincronizado com o hub.' : 'Não foi possível sincronizar.');
+    setMessage(result.ok ? 'Apelido salvo. Ele aparece no painel em instantes.' : 'Não foi possível salvar.');
     setBusy(false);
   }
 
@@ -62,13 +48,9 @@ export function ProfileCard() {
         <button type="submit" disabled={!dbUp || busy}>
           Salvar
         </button>
-        <button type="button" className="secondary" onClick={onSync} disabled={!canSync || busy}>
-          Sincronizar com o hub
-        </button>
       </div>
 
       {!dbUp && <p className="notice">Banco não conectado. Suba o banco para editar o perfil.</p>}
-      {dbUp && !canSync && <p className="notice">Hub indisponível: a sincronização está desabilitada.</p>}
       {message && <p role="status">{message}</p>}
     </form>
   );

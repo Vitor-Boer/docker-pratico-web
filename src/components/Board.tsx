@@ -4,11 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { getParticipants } from '@/lib/hub';
 import { usePolling } from '@/lib/usePolling';
-import { checkpointLabel } from './checkpointLabel';
-import { useSiteStatus } from './StatusProvider';
+import { PieceBlocks } from './PieceBlocks';
 
-const CARD_W = 200;
-const CARD_H = 84;
+const CARD_W = 210;
+const CARD_H = 92;
 const GAP = 36;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 2;
@@ -63,7 +62,6 @@ function jitter(id: string): Pos {
 // arraste um cartão para reposicioná-lo e clique nele para ver o participante.
 export function Board() {
   const router = useRouter();
-  const status = useSiteStatus();
   const result = usePolling(getParticipants, 3000);
 
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -173,16 +171,11 @@ export function Board() {
     if (d?.kind === 'card' && !d.moved) router.push(`/participantes/${d.id}`);
   }
 
+  // O quadro só depende do hub: o próprio site já pinga e aparece aqui, mesmo antes de
+  // existir API ou banco. Vazio significa hub fora do ar, não peça faltando.
   let hint: string | null = null;
   if (result && participants.length === 0) {
-    if (!result.ok) {
-      hint =
-        status.api === 'up'
-          ? 'Hub indisponível no momento.'
-          : 'Quadro em branco. Suba a API para os participantes começarem a aparecer aqui.';
-    } else {
-      hint = 'Ninguém conectou ainda.';
-    }
+    hint = result.ok ? 'Ninguém conectou ainda.' : 'Hub indisponível no momento.';
   }
 
   const dot = 24 * view.scale;
@@ -208,7 +201,7 @@ export function Board() {
           return (
             <div
               key={p.id}
-              className={`board-card checkpoint-${p.checkpoint ?? 'NONE'}`}
+              className={`board-card pieces-${[p.site, p.api, p.db].filter(Boolean).length}`}
               style={{ left: pos.x, top: pos.y, width: CARD_W, height: CARD_H }}
               onPointerDown={(event) => onCardDown(event, p.id)}
               role="link"
@@ -216,7 +209,7 @@ export function Board() {
               onKeyDown={(event) => event.key === 'Enter' && router.push(`/participantes/${p.id}`)}
             >
               <span className="name">{p.name}</span>
-              <span className="tag">{checkpointLabel(p.checkpoint)}</span>
+              <PieceBlocks pieces={p} />
             </div>
           );
         })}

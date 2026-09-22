@@ -1,31 +1,23 @@
-import { getHubSession } from './api';
+import { participantId } from './identity';
 import { request, type Result } from './http';
-import type { HubSession, ParticipantView } from './types';
+import type { ParticipantView, Pieces } from './types';
 
-// Token USER (somente leitura) obtido da API local. Só existe com a API no ar.
-// Guardado em memória e reaproveitado; se o hub responder 401, pede outro uma vez.
-let session: HubSession | null = null;
+// Hub do apresentador: fica na nuvem e nunca vai para a máquina do participante.
+// O padrão abaixo é o hub oficial do workshop; NEXT_PUBLIC_HUB_URL só é necessária para
+// apontar para outro. Atenção: NEXT_PUBLIC_* é embutida no build, não lida em runtime.
+export const HUB_URL =
+  process.env.NEXT_PUBLIC_HUB_URL ?? 'https://hub.docker-na-pratica.com';
 
-async function callHub<T>(path: string, retry = true): Promise<Result<T>> {
-  if (!session) {
-    const fresh = await getHubSession();
-    if (!fresh.ok) return { ok: false, status: fresh.status };
-    session = fresh.data;
-  }
-
-  const result = await request<T>(`${session.hubUrl}${path}`, {
-    headers: { Authorization: `Bearer ${session.token}` },
+// Avisa o hub que este participante está no ar e quais peças já subiram. `site` não vai no
+// corpo: se este código está rodando, o site está de pé, e o hub assume isso.
+export const ping = (pieces: Omit<Pieces, 'site'> & { nickname?: string }) =>
+  request<void>(`${HUB_URL}/participants/${participantId()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pieces),
   });
 
-  if (!result.ok && result.status === 401 && retry) {
-    session = null;
-    return callHub<T>(path, false);
-  }
+export const getParticipants = () => request<ParticipantView[]>(`${HUB_URL}/participants`);
 
-  return result;
-}
-
-export const getParticipants = () => callHub<ParticipantView[]>('/participants');
-
-export const getParticipant = (id: string) =>
-  callHub<ParticipantView>(`/participants/${encodeURIComponent(id)}`);
+export const getParticipant = (id: string): Promise<Result<ParticipantView>> =>
+  request<ParticipantView>(`${HUB_URL}/participants/${encodeURIComponent(id)}`);
