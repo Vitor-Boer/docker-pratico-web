@@ -36,8 +36,9 @@ Os repositórios do desafio são independentes: clone cada um onde preferir. No 
 Depois de completar o `Dockerfile`:
 
 ```bash
+docker network create workshop
 docker build -t site .
 docker run -d --name site -p 3000:3000 site
 ```
 
-Abre em http://localhost:3000.
+Abre em http://localhost:3000. A rede `workshop` só precisa ser criada uma vez — é o que deixa `site`, `api` e `db` se acharem pelo nome nos próximos passos (`docker-pratico-user-api`). Se já existir, pule esse comando (ele dá erro em rede duplicada, sem problema).
