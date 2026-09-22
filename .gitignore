@@ -9,6 +9,3 @@ next-env.d.ts
 *.log
 .DS_Store
 Thumbs.db
-
-# Gabarito local (nunca comitar): resposta do desafio Docker.
-Dockerfile.gabarito
