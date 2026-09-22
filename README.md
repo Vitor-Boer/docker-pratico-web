@@ -30,3 +30,14 @@ Copie `.env.example` para `.env`. Todas as variáveis são opcionais para o site
 O `Dockerfile` e o `docker-compose.yml` têm lacunas marcadas com `TODO(workshop)`. Complete-as seguindo as etapas do workshop.
 
 Os repositórios do desafio são independentes: clone cada um onde preferir. No `docker-compose.yml`, o serviço `api` só precisa apontar para o caminho (ou a URL git) do repositório da API.
+
+## Docker
+
+Depois de completar o `Dockerfile`:
+
+```bash
+docker build -t site .
+docker run -d --name site -p 3000:3000 site
+```
+
+Abre em http://localhost:3000.
