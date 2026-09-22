@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { use } from 'react';
-import { PieceBlocks } from '@/components/PieceBlocks';
-import { getParticipant } from '@/lib/hub';
+import { participantPieces, PieceBlocks } from '@/components/PieceBlocks';
+import { getParticipant } from '@/lib/api';
 import { usePolling } from '@/lib/usePolling';
 
 export default function ParticipantPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,14 +21,14 @@ export default function ParticipantPage({ params }: { params: Promise<{ id: stri
           <p className="notice">
             {result.status === 404
               ? 'Participante não encontrado.'
-              : 'Não foi possível carregar. O hub precisa estar no ar.'}
+              : 'Não foi possível carregar. A API local e o hub precisam estar no ar.'}
           </p>
         )}
 
         {result?.ok && (
           <>
             <h2>{result.data.name}</h2>
-            <PieceBlocks pieces={result.data} />
+            <PieceBlocks items={participantPieces(result.data)} />
           </>
         )}
       </div>

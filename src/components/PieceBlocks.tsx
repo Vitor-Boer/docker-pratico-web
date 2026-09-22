@@ -1,30 +1,33 @@
 import { Fragment } from 'react';
 import type { Pieces } from '@/lib/types';
 
-const ORDER: Array<{ key: keyof Pieces; label: string }> = [
-  { key: 'site', label: 'Site' },
-  { key: 'api', label: 'API' },
-  { key: 'db', label: 'Banco' },
-];
+export interface PieceItem {
+  label: string;
+  on: boolean;
+}
 
-// Os três bloquinhos do desafio. Apagado = aquela peça não está no ar agora; o traço entre
-// dois blocos acende quando os dois estão de pé, então a linha se completa conforme o
-// participante sobe os containers.
-export function PieceBlocks({ pieces }: { pieces: Pieces }) {
+// Bloquinhos encadeados: apagado até a peça correspondente estar no ar, ligados por um
+// traço que acende quando as duas pontas estão acesas. Usado no cartão do participante
+// (Site/API/Banco) e no cartão do hub (API/Banco).
+export function PieceBlocks({ items }: { items: PieceItem[] }) {
   return (
     <span className="pieces">
-      {ORDER.map(({ key, label }, index) => {
-        const previous = ORDER[index - 1];
+      {items.map((item, index) => {
+        const previous = items[index - 1];
 
         return (
-          <Fragment key={key}>
-            {previous && (
-              <span className={`link${pieces[key] && pieces[previous.key] ? ' on' : ''}`} />
-            )}
-            <span className={`piece${pieces[key] ? ' on' : ''}`}>{label}</span>
+          <Fragment key={item.label}>
+            {previous && <span className={`link${item.on && previous.on ? ' on' : ''}`} />}
+            <span className={`piece${item.on ? ' on' : ''}`}>{item.label}</span>
           </Fragment>
         );
       })}
     </span>
   );
 }
+
+export const participantPieces = (p: Pieces): PieceItem[] => [
+  { label: 'Site', on: p.site },
+  { label: 'API', on: p.api },
+  { label: 'Banco', on: p.db },
+];

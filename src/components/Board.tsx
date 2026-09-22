@@ -2,13 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { getParticipants } from '@/lib/hub';
+import { getParticipants } from '@/lib/api';
+import { participantId } from '@/lib/identity';
+import type { ParticipantView } from '@/lib/types';
 import { usePolling } from '@/lib/usePolling';
-import { PieceBlocks } from './PieceBlocks';
+import { participantPieces, PieceBlocks } from './PieceBlocks';
+import { useSiteStatus } from './StatusProvider';
 
 const CARD_W = 210;
 const CARD_H = 92;
 const GAP = 36;
+// Espaço entre o cartão do hub e "Você" — maior que o GAP entre participantes, pra não
+// grudar os dois.
+const HUB_GAP = 96;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 2;
 const DRAG_THRESHOLD = 4;
@@ -62,6 +68,7 @@ function jitter(id: string): Pos {
 // arraste um cartão para reposicioná-lo e clique nele para ver o participante.
 export function Board() {
   const router = useRouter();
+  const status = useSiteStatus();
   const result = usePolling(getParticipants, 3000);
 
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -72,7 +79,23 @@ export function Board() {
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
   const [, redraw] = useState(0);
 
-  const participants = result?.ok ? result.data : [];
+  // O id só existe no navegador (localStorage): lido depois de montar, não durante o SSR.
+  const [selfId, setSelfId] = useState<string | null>(null);
+  useEffect(() => setSelfId(participantId()), []);
+
+  // O próprio cartão não depende de ninguém: vem do estado que o site já tem localmente,
+  // não da lista do hub. Aparece mesmo com a API e o hub fora do ar.
+  const self: ParticipantView | null = selfId
+    ? { id: selfId, name: 'Você', site: true, api: status.api === 'up', db: status.db === 'up' }
+    : null;
+
+  const others = result?.ok ? result.data.filter((p) => p.id !== selfId) : [];
+  const participants = self ? [self, ...others] : others;
+
+  // O cartão do hub não é um participante: fica fixo logo acima de "Você", ligado por um
+  // traço vertical. Some até "Você" ganhar posição (primeiro render).
+  const selfPos = selfId ? placed.current[selfId] : undefined;
+  const hubPos = selfPos ? { x: selfPos.x, y: selfPos.y - CARD_H - HUB_GAP } : null;
 
   // A origem do quadro começa no centro da tela.
   useEffect(() => {
@@ -80,12 +103,11 @@ export function Board() {
     if (el) setView((v) => ({ ...v, x: el.clientWidth / 2, y: el.clientHeight / 2 }));
   }, []);
 
-  // Quem chegou agora ganha a próxima célula livre.
+  // Quem chegou agora ganha a próxima célula livre. "Você" chega primeiro, então fica no
+  // centro (célula 0) e os outros espiralam ao redor dele.
   useEffect(() => {
-    if (!result?.ok) return;
-
     let changed = false;
-    for (const p of result.data) {
+    for (const p of participants) {
       if (placed.current[p.id]) continue;
       const cell = spiralCell(nextCell.current++);
       const offset = jitter(p.id);
@@ -96,7 +118,8 @@ export function Board() {
       changed = true;
     }
     if (changed) redraw((n) => n + 1);
-  }, [result]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, selfId]);
 
   // Precisa ser listener nativo não passivo para poder impedir a rolagem da página.
   useEffect(() => {
@@ -171,11 +194,19 @@ export function Board() {
     if (d?.kind === 'card' && !d.moved) router.push(`/participantes/${d.id}`);
   }
 
-  // O quadro só depende do hub: o próprio site já pinga e aparece aqui, mesmo antes de
-  // existir API ou banco. Vazio significa hub fora do ar, não peça faltando.
+  const apiUp = status.api === 'up';
+
+  // "Você" está sempre no quadro; a dica é só sobre os outros. Fica no canto, fixa na
+  // tela (fora do `.world`), então não se mexe com pan/zoom nem some atrás de um cartão.
   let hint: string | null = null;
-  if (result && participants.length === 0) {
-    hint = result.ok ? 'Ninguém conectou ainda.' : 'Hub indisponível no momento.';
+  if (others.length === 0) {
+    if (!apiUp) {
+      hint = 'Suba a API para os outros participantes começarem a aparecer aqui.';
+    } else if (result && !result.ok) {
+      hint = 'Hub indisponível no momento.';
+    } else if (result?.ok) {
+      hint = 'Mais ninguém conectou ainda.';
+    }
   }
 
   const dot = 24 * view.scale;
@@ -209,10 +240,28 @@ export function Board() {
               onKeyDown={(event) => event.key === 'Enter' && router.push(`/participantes/${p.id}`)}
             >
               <span className="name">{p.name}</span>
-              <PieceBlocks pieces={p} />
+              <PieceBlocks items={participantPieces(p)} />
             </div>
           );
         })}
+
+        {hubPos && (
+          <>
+            <div
+              className="connector"
+              style={{ left: hubPos.x + CARD_W / 2 - 2, top: hubPos.y + CARD_H, height: HUB_GAP }}
+            />
+            <div className="board-card hub-card" style={{ left: hubPos.x, top: hubPos.y, width: CARD_W, height: CARD_H }}>
+              <span className="name">Hub</span>
+              <PieceBlocks
+                items={[
+                  { label: 'API', on: status.hub === 'up' },
+                  { label: 'Banco', on: status.hub === 'up' },
+                ]}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {hint && <p className="board-hint">{hint}</p>}

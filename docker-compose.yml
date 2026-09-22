@@ -13,7 +13,7 @@ services:
   # Etapa 2 - API
   # TODO(workshop): serviço `api` com build apontando para o repositório da API
   #   (o caminho onde você o clonou ou a URL git)
-  #   - porta 4000:4000 (o navegador chama a API direto)
+  #   - porta 3001:3001 (o navegador chama a API direto)
   #   - environment: DATABASE_URL (host `db`)
 
   # Etapa 3 - banco

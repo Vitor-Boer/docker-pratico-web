@@ -306,6 +306,24 @@ input:disabled {
   opacity: 1;
 }
 
+/* Cartão do hub: fixo acima de "Você", nunca vem da lista de participantes. */
+.hub-card {
+  border-left-color: var(--accent);
+  cursor: default;
+}
+
+.hub-card .name {
+  color: var(--accent);
+}
+
+/* Traço vertical entre o hub e "Você": fuso, fino nas pontas e grosso no meio. */
+.connector {
+  position: absolute;
+  width: 4px;
+  background: var(--border);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
 @keyframes pop {
   from {
     opacity: 0;
@@ -315,12 +333,15 @@ input:disabled {
 
 .board-hint {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: 320px;
+  top: 16px;
+  left: 16px;
+  max-width: 260px;
   margin: 0;
-  transform: translate(-50%, -50%);
-  text-align: center;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
   color: var(--muted);
   pointer-events: none;
 }
