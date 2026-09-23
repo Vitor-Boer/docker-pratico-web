@@ -1,6 +1,6 @@
 # docker-pratico-web
 
-Site do workshop **Docker na Prática**. É a primeira peça do desafio: você vai containerizá-lo, depois a API e o banco, e no fim juntar tudo com Docker Compose.
+Site do workshop **Docker na Prática**. É a primeira peça do desafio: você vai containerizá-lo, depois a API e banco de dados.
 
 O site funciona sozinho. Sem API, ele mostra só a casca; conforme você sobe a API e o banco, mais partes ficam habilitadas — e, no painel do workshop, mais bloquinhos do seu cartão acendem.
 
