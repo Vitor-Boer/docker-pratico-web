@@ -316,12 +316,20 @@ input:disabled {
   color: var(--accent);
 }
 
-/* Traço vertical entre o hub e "Você": fuso, fino nas pontas e grosso no meio. */
-.connector {
+/* Traços entre o hub e cada participante. SVG de tamanho zero na origem do quadro, com
+   overflow visível: as coordenadas dos polígonos são as mesmas dos cartões. */
+.connectors {
   position: absolute;
-  width: 4px;
-  background: var(--border);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.connectors polygon {
+  fill: var(--border);
 }
 
 @keyframes pop {

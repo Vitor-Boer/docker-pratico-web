@@ -63,6 +63,22 @@ function jitter(id: string): Pos {
   return { x: (hash % 21) - 10, y: ((hash >> 8) % 21) - 10 };
 }
 
+// Dois cartões (mesmo tamanho) se sobrepõem?
+const overlaps = (a: Pos, b: Pos) => Math.abs(a.x - b.x) < CARD_W && Math.abs(a.y - b.y) < CARD_H;
+
+const center = (pos: Pos): Pos => ({ x: pos.x + CARD_W / 2, y: pos.y + CARD_H / 2 });
+
+// Traço de `a` até `b` em forma de fuso: fino nas pontas e com 4px de largura no meio.
+// Vai de centro a centro; como o SVG fica atrás dos cartões, só aparece o trecho entre eles.
+function spindle(a: Pos, b: Pos): string {
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const nx = ((a.y - b.y) / len) * 2;
+  const ny = ((b.x - a.x) / len) * 2;
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  return `${a.x},${a.y} ${mx + nx},${my + ny} ${b.x},${b.y} ${mx - nx},${my - ny}`;
+}
+
 // Quadro em branco: os participantes aparecem como cartões conforme entram no hub.
 // Arraste o fundo para mover, use a roda do mouse (ou os botões) para o zoom,
 // arraste um cartão para reposicioná-lo e clique nele para ver o participante.
@@ -104,17 +120,26 @@ export function Board() {
   }, []);
 
   // Quem chegou agora ganha a próxima célula livre. "Você" chega primeiro, então fica no
-  // centro (célula 0) e os outros espiralam ao redor dele.
+  // centro (célula 0) e os outros espiralam ao redor dele. Células que cairiam em cima do
+  // cartão do hub são puladas.
   useEffect(() => {
     let changed = false;
     for (const p of participants) {
       if (placed.current[p.id]) continue;
-      const cell = spiralCell(nextCell.current++);
       const offset = jitter(p.id);
-      placed.current[p.id] = {
-        x: cell.x * (CARD_W + GAP) - CARD_W / 2 + offset.x,
-        y: cell.y * (CARD_H + GAP) - CARD_H / 2 + offset.y,
-      };
+      const self = selfId ? placed.current[selfId] : undefined;
+      const hub = self ? { x: self.x, y: self.y - CARD_H - HUB_GAP } : null;
+
+      let pos: Pos;
+      do {
+        const cell = spiralCell(nextCell.current++);
+        pos = {
+          x: cell.x * (CARD_W + GAP) - CARD_W / 2 + offset.x,
+          y: cell.y * (CARD_H + GAP) - CARD_H / 2 + offset.y,
+        };
+      } while (hub && overlaps(pos, hub));
+
+      placed.current[p.id] = pos;
       changed = true;
     }
     if (changed) redraw((n) => n + 1);
@@ -225,6 +250,15 @@ export function Board() {
         className="world"
         style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
       >
+        {hubPos && (
+          <svg className="connectors">
+            {participants.map((p) => {
+              const pos = placed.current[p.id];
+              return pos && <polygon key={p.id} points={spindle(center(hubPos), center(pos))} />;
+            })}
+          </svg>
+        )}
+
         {participants.map((p) => {
           const pos = placed.current[p.id];
           if (!pos) return null;
@@ -246,21 +280,15 @@ export function Board() {
         })}
 
         {hubPos && (
-          <>
-            <div
-              className="connector"
-              style={{ left: hubPos.x + CARD_W / 2 - 2, top: hubPos.y + CARD_H, height: HUB_GAP }}
+          <div className="board-card hub-card" style={{ left: hubPos.x, top: hubPos.y, width: CARD_W, height: CARD_H }}>
+            <span className="name">Hub</span>
+            <PieceBlocks
+              items={[
+                { label: 'API', on: status.hub === 'up' },
+                { label: 'Banco', on: status.hub === 'up' },
+              ]}
             />
-            <div className="board-card hub-card" style={{ left: hubPos.x, top: hubPos.y, width: CARD_W, height: CARD_H }}>
-              <span className="name">Hub</span>
-              <PieceBlocks
-                items={[
-                  { label: 'API', on: status.hub === 'up' },
-                  { label: 'Banco', on: status.hub === 'up' },
-                ]}
-              />
-            </div>
-          </>
+          </div>
         )}
       </div>
 
