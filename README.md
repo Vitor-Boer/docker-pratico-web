@@ -42,3 +42,28 @@ docker run -d --name site -p 3000:3000 site
 ```
 
 Abre em http://localhost:3000. A rede `workshop` só precisa ser criada uma vez — é o que deixa `site`, `api` e `db` se acharem pelo nome nos próximos passos (`docker-pratico-user-api`). Se já existir, pule esse comando (ele dá erro em rede duplicada, sem problema).
+
+## Comandos úteis (debug)
+
+| Comando | Para quê |
+|---|---|
+| `docker ps` | containers rodando agora |
+| `docker ps -a` | todos, inclusive os que pararam ou caíram (veja a coluna `STATUS`) |
+| `docker logs site` | saída do site — primeiro lugar para olhar quando algo não sobe |
+| `docker logs -f site` | acompanha os logs ao vivo (`Ctrl+C` sai) |
+| `docker stop site` | para o container |
+| `docker start site` | sobe de novo um container parado, com a mesma configuração |
+| `docker rm site` | remove um container parado |
+| `docker rm -f site` | para e remove de uma vez |
+| `docker exec -it site sh` | abre um terminal dentro do container (`exit` sai) |
+| `docker images` | imagens construídas/baixadas |
+| `docker network ls` | redes existentes (a `workshop` deve aparecer) |
+| `docker compose ps` / `docker compose logs -f` | o mesmo, para os serviços do Compose |
+| `docker compose down` | para e remove os containers do Compose |
+
+Erros comuns:
+
+- **`Conflict. The container name "/site" is already in use`**: já existe um container com esse nome, mesmo parado. `docker rm -f site` e rode de novo.
+- **`port is already allocated`**: outra coisa já usa a porta 3000 (um container antigo ou o `pnpm dev`). Ache com `docker ps` e remova, ou pare o processo local. Se o `pnpm dev` subir mesmo assim, ele muda sozinho para a próxima porta livre (3001, 3002...) — confira no terminal qual foi.
+- **Mudou o código ou o `Dockerfile` e nada mudou**: o container usa a imagem antiga. Rode `docker build -t site .` de novo, `docker rm -f site` e suba outra vez.
+- **Antes de subir com Compose**: remova os containers criados à mão (`docker rm -f site api db`), senão o Compose esbarra nas portas 3000 e 3001, que continuam ocupadas por eles.
